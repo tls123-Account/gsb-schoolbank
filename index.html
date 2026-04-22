@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>GSB SchoolBank</title>
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Prompt', 'Segoe UI', sans-serif;
+    background: #f5f7ff;
+    max-width: 390px;
+    margin: 0 auto;
+    min-height: 100vh;
+  }
+
+  /* PAGE SYSTEM */
+  .page { display: none; min-height: 100vh; flex-direction: column; }
+  .page.active { display: flex; flex-direction: column; }
+
+  /* =================== SHARED =================== */
+  .back-btn {
+    width: 100%; padding: 16px; border: none; border-radius: 18px;
+    background: linear-gradient(135deg, #FFD93D, #FF6B6B);
+    color: #fff; font-family: 'Prompt', sans-serif;
+    font-size: 15px; font-weight: 700; cursor: pointer;
+    transition: opacity 0.15s; margin-top: 6px;
+  }
+  .back-btn:active { opacity: 0.85; }
+
+  /* =================== HOME =================== */
+  .home-header {
+    background: linear-gradient(135deg, #FFD93D 0%, #FF6B6B 60%, #C77DFF 100%);
+    padding: 32px 20px 52px;
+    position: relative; overflow: hidden;
+  }
+  .home-header::before {
+    content: ''; position: absolute;
+    width: 220px; height: 220px;
+    background: rgba(255,255,255,0.12); border-radius: 50%;
+    top: -90px; right: -70px;
+  }
+  .home-header::after {
+    content: ''; position: absolute;
+    width: 130px; height: 130px;
+    background: rgba(255,255,255,0.08); border-radius: 50%;
+    bottom: -50px; left: -30px;
+  }
+  .top-row {
+    display: flex; align-items: center; gap: 12px;
+    margin-bottom: 20px; position: relative; z-index: 1;
+  }
+  .avatar {
+    width: 52px; height: 52px; border-radius: 50%;
+    background: #fff; display: flex; align-items: center;
+    justify-content: center; font-size: 28px;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.18);
+  }
+  .greeting { color: #fff; }
+  .greeting .hello { font-size: 12px; opacity: 0.88; }
+  .greeting .name { font-size: 18px; font-weight: 800; }
+  .points-card {
+    background: rgba(255,255,255,0.28); backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.45); border-radius: 22px;
+    padding: 16px 18px; position: relative; z-index: 1;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .points-label { font-size: 11px; color: rgba(255,255,255,0.88); margin-bottom: 5px; }
+  .points-row { display: flex; align-items: baseline; gap: 4px; }
+  .points-value { font-size: 36px; font-weight: 800; color: #fff; line-height: 1; }
+  .points-unit { font-size: 14px; color: rgba(255,255,255,0.88); font-weight: 600; }
+  .points-icon { font-size: 40px; }
+
+  .home-body {
+    padding: 0 16px 28px; margin-top: -28px;
+    position: relative; z-index: 2; flex: 1;
+  }
+  .card {
+    background: #fff; border-radius: 22px; padding: 18px;
+    box-shadow: 0 8px 28px rgba(0,0,0,0.07); margin-bottom: 14px;
+  }
+  .card-top {
+    display: flex; justify-content: space-between;
+    align-items: center; margin-bottom: 12px;
+  }
+  .card-title { font-size: 13px; font-weight: 700; color: #333; }
+  .badge {
+    font-size: 10px; font-weight: 700; padding: 3px 10px;
+    border-radius: 20px; background: #fff0f0; color: #FF6B6B;
+  }
+  .mission-name { font-size: 16px; font-weight: 800; color: #FF6B6B; margin-bottom: 14px; }
+  .dots-row { display: flex; gap: 8px; margin-bottom: 10px; }
+  .dot {
+    width: 34px; height: 34px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 700;
+  }
+  .dot.done { background: #FF6B6B; color: #fff; }
+  .dot.active { background: #FFD93D; color: #7a5c00; border: 2px dashed #FF6B6B; }
+  .dot.empty { background: #f0f0f0; color: #ccc; }
+  .progress-wrap { background: #f0f0f0; border-radius: 20px; height: 10px; overflow: hidden; margin-bottom: 6px; }
+  .progress-fill { height: 100%; width: 60%; background: linear-gradient(90deg, #FFD93D, #FF6B6B); border-radius: 20px; }
+  .progress-text { font-size: 11px; color: #aaa; text-align: right; margin-bottom: 10px; }
+  .reward-row { background: #fff8e6; border-radius: 12px; padding: 8px 12px; font-size: 12px; color: #8a6800; font-weight: 600; }
+
+  .section-title { font-size: 13px; font-weight: 700; color: #444; margin-bottom: 10px; }
+  .quick-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+  .quick-btn {
+    border-radius: 18px; padding: 18px 12px 14px;
+    text-align: center; cursor: pointer; transition: transform 0.15s;
+  }
+  .quick-btn:active { transform: scale(0.96); }
+  .quick-btn .icon { font-size: 28px; margin-bottom: 6px; }
+  .quick-btn .lbl { font-size: 12px; font-weight: 700; }
+  .qb1 { background: #fff0f0; color: #FF6B6B; }
+  .qb2 { background: #f0fff6; color: #2d9e5f; }
+  .qb3 { background: #f0f4ff; color: #4361ee; }
+  .qb4 { background: #fff8e6; color: #b8860b; }
+
+  .streak-card {
+    background: linear-gradient(135deg, #C77DFF, #4361ee);
+    border-radius: 22px; padding: 18px 20px;
+    display: flex; align-items: center; gap: 14px; color: #fff;
+  }
+  .streak-icon { font-size: 38px; }
+  .streak-label { font-size: 12px; opacity: 0.85; margin-bottom: 2px; }
+  .streak-value { font-size: 22px; font-weight: 800; }
+
+  /* =================== MISSION =================== */
+  .mission-header {
+    background: linear-gradient(135deg, #C77DFF, #4361ee);
+    padding: 28px 20px; color: #fff; text-align: center;
+  }
+  .mission-header .icon { font-size: 44px; margin-bottom: 8px; }
+  .mission-header .title { font-size: 20px; font-weight: 800; }
+  .mission-header .sub { font-size: 12px; opacity: 0.85; margin-top: 4px; }
+
+  .mission-body { padding: 16px; flex: 1; }
+  .mission-option {
+    border-radius: 22px; padding: 18px; margin-bottom: 12px;
+    border: 2px solid transparent; cursor: pointer; transition: transform 0.15s;
+  }
+  .mission-option:active { transform: scale(0.98); }
+  .mo-easy { background: #fff8e6; border-color: #FFD93D; }
+  .mo-mid  { background: #fff0f0; border-color: #FF6B6B; }
+  .mo-hard { background: #f0f4ff; border-color: #4361ee; }
+  .mo-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
+  .mo-emoji { font-size: 30px; }
+  .mo-points { font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 20px; }
+  .easy-pts { background: #FFD93D; color: #7a5c00; }
+  .mid-pts  { background: #FF6B6B; color: #fff; }
+  .hard-pts { background: #4361ee; color: #fff; }
+  .mo-name { font-size: 16px; font-weight: 800; color: #333; margin-bottom: 4px; }
+  .mo-desc { font-size: 12px; color: #888; }
+  .mo-stars { display: flex; gap: 3px; margin-top: 10px; }
+  .star { font-size: 15px; }
+  .select-btn {
+    width: 100%; padding: 16px; border: none; border-radius: 18px;
+    background: linear-gradient(135deg, #FF6B6B, #C77DFF);
+    color: #fff; font-family: 'Prompt', sans-serif;
+    font-size: 15px; font-weight: 700; cursor: pointer;
+    margin-top: 6px; transition: opacity 0.15s;
+  }
+  .select-btn:active { opacity: 0.85; }
+
+  /* =================== CALENDAR =================== */
+  .cal-header {
+    background: linear-gradient(135deg, #FFD93D, #FF6B6B);
+    padding: 28px 20px 24px; color: #fff; text-align: center;
+  }
+  .cal-header .icon { font-size: 40px; margin-bottom: 6px; }
+  .cal-header .title { font-size: 20px; font-weight: 800; }
+  .cal-header .sub { font-size: 12px; opacity: 0.88; margin-top: 4px; }
+
+  .cal-body { padding: 16px; flex: 1; }
+  .summary-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+  .summary-card { background: #fff; border-radius: 16px; padding: 14px 10px; text-align: center; box-shadow: 0 4px 16px rgba(0,0,0,0.06); }
+  .summary-card .s-icon { font-size: 22px; margin-bottom: 4px; }
+  .summary-card .s-value { font-size: 18px; font-weight: 800; color: #333; }
+  .summary-card .s-label { font-size: 10px; color: #aaa; margin-top: 2px; }
+
+  .calendar-card { background: #fff; border-radius: 22px; padding: 18px; box-shadow: 0 8px 28px rgba(0,0,0,0.07); margin-bottom: 14px; }
+  .cal-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+  .cal-nav button { background: #f5f7ff; border: none; border-radius: 10px; width: 32px; height: 32px; font-size: 16px; cursor: pointer; color: #4361ee; font-weight: 700; }
+  .cal-month { font-size: 15px; font-weight: 800; color: #333; }
+  .cal-days-header { display: grid; grid-template-columns: repeat(7, 1fr); margin-bottom: 6px; }
+  .day-label { text-align: center; font-size: 11px; font-weight: 700; color: #aaa; padding: 4px 0; }
+  .day-label.sun { color: #FF6B6B; }
+  .day-label.sat { color: #4361ee; }
+  .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
+  .cal-cell { aspect-ratio: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; border-radius: 10px; }
+  .cal-cell .date-num { font-size: 10px; font-weight: 600; color: #bbb; line-height: 1; margin-bottom: 1px; }
+  .cal-cell .emoji { font-size: 18px; line-height: 1; }
+  .cal-cell.saved { background: #fff8e6; }
+  .cal-cell.saved .date-num { color: #b8860b; }
+  .cal-cell.missed { background: #fff5f5; }
+  .cal-cell.missed .date-num { color: #ffb3b3; }
+  .cal-cell.today { background: #f0f4ff; border: 2px solid #4361ee; }
+  .cal-cell.today .date-num { color: #4361ee; font-weight: 800; }
+  .cal-cell.empty { background: transparent; }
+  .cal-cell.future { background: #fafafa; }
+  .cal-cell.future .date-num { color: #ddd; }
+  .legend { display: flex; gap: 16px; justify-content: center; margin-top: 14px; padding-top: 14px; border-top: 1px solid #f0f0f0; }
+  .legend-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: #888; }
+
+  /* =================== REWARD =================== */
+  .reward-header {
+    background: linear-gradient(135deg, #FFD93D, #FF6B6B);
+    padding: 28px 20px 24px; color: #fff; text-align: center;
+  }
+  .reward-header .icon { font-size: 40px; margin-bottom: 6px; }
+  .reward-header .title { font-size: 20px; font-weight: 800; }
+  .reward-body {
+    flex: 1; display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 32px 24px; text-align: center;
+  }
+  .big-icon { font-size: 80px; margin-bottom: 20px; }
+  .coming-title { font-size: 22px; font-weight: 800; color: #333; margin-bottom: 10px; }
+  .coming-desc { font-size: 14px; color: #888; line-height: 1.7; margin-bottom: 32px; }
+  .coming-desc span { color: #FF6B6B; font-weight: 700; }
+  .points-remind { background: #fff8e6; border-radius: 18px; padding: 16px 20px; margin-bottom: 32px; width: 100%; }
+  .points-remind .label { font-size: 12px; color: #8a6800; margin-bottom: 4px; }
+  .points-remind .value { font-size: 28px; font-weight: 800; color: #FF6B6B; }
+  .points-remind .unit { font-size: 13px; color: #8a6800; }
+
+  /* =================== CONTACT =================== */
+  .contact-header {
+    background: linear-gradient(135deg, #4361ee, #C77DFF);
+    padding: 20px 16px 16px; color: #fff;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .back-icon { font-size: 20px; cursor: pointer; padding: 4px; }
+  .bot-avatar { width: 40px; height: 40px; border-radius: 50%; background: rgba(255,255,255,0.25); display: flex; align-items: center; justify-content: center; font-size: 22px; }
+  .bot-info { flex: 1; }
+  .bot-name { font-size: 15px; font-weight: 700; }
+  .bot-status { font-size: 11px; opacity: 0.85; display: flex; align-items: center; gap: 4px; }
+  .status-dot { width: 7px; height: 7px; border-radius: 50%; background: #aaa; }
+  .chat-area { flex: 1; padding: 16px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
+  .date-label { text-align: center; font-size: 11px; color: #aaa; background: #e8ecff; padding: 4px 12px; border-radius: 20px; align-self: center; }
+  .msg-bot { display: flex; align-items: flex-end; gap: 8px; }
+  .msg-bot-avatar { width: 32px; height: 32px; border-radius: 50%; background: #fff; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+  .bubble-bot { background: #fff; border-radius: 18px 18px 18px 4px; padding: 12px 14px; max-width: 260px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+  .bubble-bot .text { font-size: 13px; color: #333; line-height: 1.6; }
+  .bubble-bot .sleeping { font-size: 28px; text-align: center; margin: 8px 0 4px; }
+  .bubble-bot .zzz { font-size: 18px; color: #C77DFF; letter-spacing: 2px; text-align: center; }
+  .msg-time { font-size: 10px; color: #bbb; align-self: flex-end; flex-shrink: 0; }
+  .msg-system { background: #fff8e6; border-radius: 12px; padding: 10px 14px; font-size: 12px; color: #8a6800; text-align: center; border: 1px dashed #FFD93D; }
+  .input-bar { background: #fff; padding: 12px 16px; display: flex; align-items: center; gap: 10px; border-top: 1px solid #eee; }
+  .input-box { flex: 1; background: #f5f7ff; border: none; border-radius: 24px; padding: 10px 16px; font-family: 'Prompt', sans-serif; font-size: 13px; color: #333; outline: none; }
+  .input-box::placeholder { color: #bbb; }
+  .send-btn { width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #4361ee, #C77DFF); border: none; color: #fff; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; opacity: 0.5; }
+</style>
+</head>
+<body>
+
+<!-- ========== PAGE: HOME ========== -->
+<div class="page active" id="page-home">
+  <div class="home-header">
+    <div class="top-row">
+      <div class="avatar">🐣</div>
+      <div class="greeting">
+        <div class="hello">สวัสดี! 👋</div>
+        <div class="name">ทาร์กริต</div>
+      </div>
+    </div>
+    <div class="points-card">
+      <div>
+        <div class="points-label">⭐ แต้มสะสมของฉัน</div>
+        <div class="points-row">
+          <span class="points-value">240</span>
+          <span class="points-unit">แต้ม</span>
+        </div>
+      </div>
+      <div class="points-icon">🏆</div>
+    </div>
+  </div>
+
+  <div class="home-body">
+    <div class="card">
+      <div class="card-top">
+        <div class="card-title">🎯 ภารกิจของฉัน</div>
+        <div class="badge">กำลังทำ</div>
+      </div>
+      <div class="mission-name">🌱 ออม 3 ใน 5 วัน</div>
+      <div class="dots-row">
+        <div class="dot done">✓</div>
+        <div class="dot done">✓</div>
+        <div class="dot done">✓</div>
+        <div class="dot active">4</div>
+        <div class="dot empty">5</div>
+      </div>
+      <div class="progress-wrap"><div class="progress-fill"></div></div>
+      <div class="progress-text">ออมแล้ว 3/5 วัน</div>
+      <div class="reward-row">🏅 รางวัล: +50 แต้ม เมื่อสำเร็จ!</div>
+    </div>
+
+    <div class="section-title">เมนูลัด</div>
+    <div class="quick-grid">
+      <div class="quick-btn qb1" onclick="goTo('page-mission')">
+        <div class="icon">🎯</div>
+        <div class="lbl">ภารกิจ</div>
+      </div>
+      <div class="quick-btn qb2" onclick="goTo('page-calendar')">
+        <div class="icon">📊</div>
+        <div class="lbl">ประวัติออม</div>
+      </div>
+      <div class="quick-btn qb3" onclick="goTo('page-contact')">
+        <div class="icon">💬</div>
+        <div class="lbl">ติดต่อเจ้าหน้าที่</div>
+      </div>
+      <div class="quick-btn qb4" onclick="goTo('page-reward')">
+        <div class="icon">🎁</div>
+        <div class="lbl">แลกของรางวัล</div>
+      </div>
+    </div>
+
+    <div class="streak-card">
+      <div class="streak-icon">🔥</div>
+      <div>
+        <div class="streak-label">ออมต่อเนื่อง</div>
+        <div class="streak-value">3 วันติดต่อกัน!</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== PAGE: MISSION ========== -->
+<div class="page" id="page-mission">
+  <div class="mission-header">
+    <div class="icon">🗺️</div>
+    <div class="title">เลือกภารกิจของคุณ!</div>
+    <div class="sub">ทำภารกิจให้สำเร็จ รับแต้มเพิ่ม 🌟</div>
+  </div>
+  <div class="mission-body">
+    <div class="mission-option mo-easy">
+      <div class="mo-top">
+        <div class="mo-emoji">🌱</div>
+        <div class="mo-points easy-pts">+50 แต้ม</div>
+      </div>
+      <div class="mo-name">ออม 3 ใน 5 วัน</div>
+      <div class="mo-desc">ฝากเงินอย่างน้อย 3 วัน ภายใน 5 วัน</div>
+      <div class="mo-stars">
+        <span class="star">⭐</span>
+        <span class="star" style="opacity:0.3">⭐</span>
+        <span class="star" style="opacity:0.3">⭐</span>
+      </div>
+    </div>
+    <div class="mission-option mo-mid">
+      <div class="mo-top">
+        <div class="mo-emoji">🔥</div>
+        <div class="mo-points mid-pts">+150 แต้ม</div>
+      </div>
+      <div class="mo-name">ออม 20 ใน 30 วัน</div>
+      <div class="mo-desc">ฝากเงินอย่างน้อย 20 วัน ภายใน 1 เดือน</div>
+      <div class="mo-stars">
+        <span class="star">⭐</span>
+        <span class="star">⭐</span>
+        <span class="star" style="opacity:0.3">⭐</span>
+      </div>
+    </div>
+    <div class="mission-option mo-hard">
+      <div class="mo-top">
+        <div class="mo-emoji">⚡</div>
+        <div class="mo-points hard-pts">+300 แต้ม</div>
+      </div>
+      <div class="mo-name">ออม 5 วันติดไม่หยุด!</div>
+      <div class="mo-desc">ฝากเงินต่อเนื่อง 5 วัน ห้ามขาดแม้แต่วันเดียว</div>
+      <div class="mo-stars">
+        <span class="star">⭐</span>
+        <span class="star">⭐</span>
+        <span class="star">⭐</span>
+      </div>
+    </div>
+    <button class="select-btn">🏅 รับคะแนน</button>
+    <br>
+    <button class="back-btn" onclick="goTo('page-home')" style="margin-top:10px;">← ย้อนกลับหน้าแรก</button>
+  </div>
+</div>
+
+<!-- ========== PAGE: CALENDAR ========== -->
+<div class="page" id="page-calendar">
+  <div class="cal-header">
+    <div class="icon">📅</div>
+    <div class="title">ประวัติการออม</div>
+    <div class="sub">เดือนเมษายน 2569</div>
+  </div>
+  <div class="cal-body">
+    <div class="summary-row">
+      <div class="summary-card">
+        <div class="s-icon">🟡</div>
+        <div class="s-value">14</div>
+        <div class="s-label">ออมสะสม</div>
+      </div>
+      <div class="summary-card">
+        <div class="s-icon">❌</div>
+        <div class="s-value">8</div>
+        <div class="s-label">วันที่พัก</div>
+      </div>
+      <div class="summary-card">
+        <div class="s-icon">🔥</div>
+        <div class="s-value">3</div>
+        <div class="s-label">ต่อเนื่อง</div>
+      </div>
+    </div>
+
+    <div class="calendar-card">
+      <div class="cal-nav">
+        <button>‹</button>
+        <div class="cal-month">เมษายน 2569</div>
+        <button>›</button>
+      </div>
+      <div class="cal-days-header">
+        <div class="day-label sun">อา</div>
+        <div class="day-label">จ</div>
+        <div class="day-label">อ</div>
+        <div class="day-label">พ</div>
+        <div class="day-label">พฤ</div>
+        <div class="day-label">ศ</div>
+        <div class="day-label sat">ส</div>
+      </div>
+      <div class="cal-grid">
+        <div class="cal-cell empty"></div>
+        <div class="cal-cell saved"><div class="date-num">1</div><div class="emoji">🟡</div></div>
+        <div class="cal-cell saved"><div class="date-num">2</div><div class="emoji">🟡</div></div>
+        <div class="cal-cell missed"><div class="date-num">3</div><div class="emoji">❌</div></div>
+        <div class="cal-cell saved"><div class="date-num">4</div><div class="emoji">🟡</div></div>
+        <div class="cal-cell missed"><div class="date-num">5</div><div class="emoji">❌</div></div>
+        <div class="cal-cell missed"><div class="date-num">6</div><div class="emoji">❌</div></div>
+        <div class="cal-cell saved"><div class="date-num">7</div><div class="emoji">🟡</div></div>
+        <div class="cal-cell saved"><div class="date-num">8</div><div class="emoji">🟡</div></div>
+        <div class="cal-cell missed"><div class="date-num">9</div><div class="emoji">❌</div></div>
+        <div class="cal-cell saved"><div class="date-num">10</div><div class="emoji">🟡</div></div>
+        <div class="cal-cell saved"><div class="date-num">11</div><div class="emoji">🟡</div></div>
+        <div class="cal-cell missed"><div class="date-num">12</div><div class="emoji">❌</div></div>
+        <div class="cal-cell missed"><div class="date-num">13</div><div class="emoji">❌</div></div>
+        <div class="cal-cell saved"><div class="date-num">14</div><div class="emoji">🟡</div></div>
+        <div class="cal-cell saved"><div class="date-num">15</div><div class="emoji">🟡</div></div>
+        <div class="cal-cell missed"><div class="date-num">16</div><div class="emoji">❌</div></div>
+        <div class="cal-cell saved"><div class="date-num">17</div><div class="emoji">🟡</div></div>
+        <div class="cal-cell missed"><div class="date-num">18</div><div class="emoji">❌</div></div>
+        <div class="cal-cell missed"><div class="date-num">19</div><div class="emoji">❌</div></div>
+        <div class="cal-cell saved"><div class="date-num">20</div><div class="emoji">🟡</div></div>
+        <div class="cal-cell saved"><div class="date-num">21</div><div class="emoji">🟡</div></div>
+        <div class="cal-cell today"><div class="date-num">22</div><div class="emoji">🟡</div></div>
+        <div class="cal-cell future"><div class="date-num">23</div></div>
+        <div class="cal-cell future"><div class="date-num">24</div></div>
+        <div class="cal-cell future"><div class="date-num">25</div></div>
+        <div class="cal-cell future"><div class="date-num">26</div></div>
+        <div class="cal-cell future"><div class="date-num">27</div></div>
+        <div class="cal-cell future"><div class="date-num">28</div></div>
+        <div class="cal-cell future"><div class="date-num">29</div></div>
+        <div class="cal-cell future"><div class="date-num">30</div></div>
+        <div class="cal-cell empty"></div>
+        <div class="cal-cell empty"></div>
+        <div class="cal-cell empty"></div>
+      </div>
+      <div class="legend">
+        <div class="legend-item"><span>🟡</span> ออมแล้ว</div>
+        <div class="legend-item"><span>❌</span> ไม่ได้ออม</div>
+        <div class="legend-item"><span style="display:inline-block;width:12px;height:12px;border-radius:4px;border:2px solid #4361ee;"></span> วันนี้</div>
+      </div>
+    </div>
+
+    <button class="back-btn" onclick="goTo('page-home')">← ย้อนกลับหน้าแรก</button>
+  </div>
+</div>
+
+<!-- ========== PAGE: REWARD ========== -->
+<div class="page" id="page-reward">
+  <div class="reward-header">
+    <div class="icon">🎁</div>
+    <div class="title">แลกของรางวัล</div>
+  </div>
+  <div class="reward-body">
+    <div class="big-icon">🚧</div>
+    <div class="coming-title">ยังไม่มีของรางวัลในขณะนี้</div>
+    <div class="coming-desc">
+      เรากำลังหา <span>สปอนเซอร์</span> และของรางวัลสุดพิเศษมาให้น้องๆ<br>
+      สะสมแต้มไว้ก่อนได้เลย แล้วเจอกันเร็วๆ นี้! 🌟
+    </div>
+    <div class="points-remind">
+      <div class="label">⭐ แต้มของฉันตอนนี้</div>
+      <div>
+        <span class="value">240</span>
+        <span class="unit"> แต้ม</span>
+      </div>
+    </div>
+    <button class="back-btn" onclick="goTo('page-home')">← ย้อนกลับหน้าแรก</button>
+  </div>
+</div>
+
+<!-- ========== PAGE: CONTACT ========== -->
+<div class="page" id="page-contact">
+  <div class="contact-header">
+    <div class="back-icon" onclick="goTo('page-home')">←</div>
+    <div class="bot-avatar">🤖</div>
+    <div class="bot-info">
+      <div class="bot-name">น้องบอท SchoolBank</div>
+      <div class="bot-status">
+        <div class="status-dot"></div>
+        กำลังหลับอยู่...
+      </div>
+    </div>
+  </div>
+  <div class="chat-area">
+    <div class="date-label">วันนี้</div>
+    <div class="msg-bot">
+      <div class="msg-bot-avatar">🤖</div>
+      <div class="bubble-bot">
+        <div class="sleeping">😴💤</div>
+        <div class="zzz">z z z . . .</div>
+      </div>
+      <div class="msg-time">10:46</div>
+    </div>
+    <div class="msg-bot">
+      <div class="msg-bot-avatar">🤖</div>
+      <div class="bubble-bot">
+        <div class="text">สวัสดีครับ! ตอนนี้น้องบอทยังหลับอยู่นะครับ 🌙<br><br>ทีมงานกำลังปลุกน้องขึ้นมาเร็วๆ นี้ เดี๋ยวน้องจะตื่นมาคุยด้วยได้เลยครับ!</div>
+      </div>
+      <div class="msg-time">10:46</div>
+    </div>
+    <div class="msg-system">
+      📌 หากต้องการความช่วยเหลือด่วน<br>กรุณาติดต่อครูหรือเจ้าหน้าที่ธนาคารโดยตรงครับ
+    </div>
+  </div>
+  <div class="input-bar">
+    <input class="input-box" type="text" placeholder="พิมพ์ข้อความ... (บอทยังหลับอยู่ 😴)" disabled>
+    <button class="send-btn">➤</button>
+  </div>
+</div>
+
+<script>
+  function goTo(pageId) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.getElementById(pageId).classList.add('active');
+    window.scrollTo(0, 0);
+  }
+</script>
+</body>
+</html>
